@@ -46,3 +46,84 @@
     -fx-opacity: 0;
     -fx-pref-width: 0;
 }
+
+.unlocked-level {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, #888, 6, 0, 0, 2);
+    -fx-border-color: #388E3C;
+    -fx-border-width: 3px;
+    -fx-cursor: hand;
+}
+
+.unlocked-level:hover {
+    -fx-background-color: #45a049; /* Darker green on hover */
+}
+
+.completed-level {
+    -fx-background-color: gold; /* Yellow/Gold */
+    -fx-text-fill: black;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15px;
+    -fx-border-color: #e0c200; 
+    -fx-border-width: 3px;
+    -fx-cursor: hand;
+}
+
+.completed-level:hover {
+    -fx-background-color: #ffd700; /* Brighter gold on hover */
+}
+
+.locked-level {
+    -fx-background-color: #E53935; /* Red */
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15px;
+    -fx-border-color: #D32F2F;
+    -fx-border-width: 3px;
+}
+
+.locked-level:hover {
+    -fx-background-color: #c62828; /* Darker red on hover */
+}
+/* Styles for the game popup */
+.game-popup {
+    -fx-background-color: #2b2b2b; /* Dark gray background */
+    -fx-background-radius: 20; /* Rounded corners */
+    -fx-padding: 20; /* Inner padding */
+    -fx-border-width: 5; /* Thick border */
+    -fx-border-color: #E53935; /* Red border for locked popup */
+}
+
+.game-popup-title {
+    -fx-font-size: 24px; /* Large text */
+    -fx-font-family: 'Arial';
+    -fx-fill: gold; /* Gold text for emphasis */
+    -fx-font-weight: bold;
+}
+
+.game-popup-subtext {
+    -fx-font-size: 16px; /* Smaller supportive text */
+    -fx-fill: white; /* White for readability */
+}
+
+.game-popup-button {
+    -fx-background-color: #E53935; /* Red background for "danger" */
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 16px; /* Match the text size */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-border-width: 2px; /* Border for additional emphasis */
+    -fx-border-color: #b71c1c; /* Darker red border */
+    -fx-background-radius: 10; /* Rounded corners */
+    -fx-border-radius: 10; /* Rounded corners for border */
+    -fx-cursor: hand; /* Pointer cursor */
+}
+
+.game-popup-button:hover {
+    -fx-background-color: #c62828; /* Darker red on hover */
+}

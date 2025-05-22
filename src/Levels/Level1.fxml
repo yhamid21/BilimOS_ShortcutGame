@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Levels.Level1" prefWidth="800" prefHeight="600">
+    <children>
+        <!-- Background Image -->
+        <ImageView fx:id="backgroundImage" fitWidth="800" fitHeight="600" preserveRatio="false">
+            <image>
+                <Image url="@../Resources/Backgrounds/LevelsBG2.png" />
+            </image>
+        </ImageView>
+
+        <!-- Content -->
+        <VBox fx:id="mainContent" alignment="CENTER" spacing="30" maxWidth="700">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+            <Text text="Level 1: Copy Shortcut (Ctrl + C)" fill="white">
+                <font>
+                    <Font name="Arial Bold" size="28.0" />
+                </font>
+                <effect>
+                    <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                </effect>
+            </Text>
+
+            <Label text="Instruction: Press Ctrl+C to copy the selected text." wrapText="true" textFill="white">
+                <font>
+                    <Font size="16.0" />
+                </font>
+                <effect>
+                    <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                </effect>
+            </Label>
+
+            <TextArea fx:id="textArea" promptText="Try copying this text..." prefHeight="150" prefWidth="600" />
+
+            <Button fx:id="nextButton" text="Next Level" prefWidth="200" />
+        </VBox>
+
+        <!-- Congratulation Popup Overlay -->
+        <VBox fx:id="congratsPopup" alignment="CENTER" spacing="15" style="-fx-background-color: white; -fx-border-color: #4CAF50; -fx-border-width: 3px; -fx-background-radius: 10; -fx-padding: 20;" visible="false" maxWidth="400">
+            <Text text="🎉 Congratulations!" wrappingWidth="300">
+                <font>
+                    <Font name="Arial Bold" size="24" />
+                </font>
+            </Text>
+            <HBox alignment="CENTER" spacing="20">
+                <Button fx:id="homeButton" text="Homepage" />
+                <Button fx:id="nextLevelButton" text="Next Level" />
+            </HBox>
+        </VBox>
+    </children>
+</StackPane>
