@@ -9,6 +9,6 @@
            xmlns:fx="http://javafx.com/fxml/1"
            prefWidth="800" prefHeight="600">
     <children>
-        <ImageView fx:id="introImage" preserveRatio="true" smooth="true" />
+        <ImageView fx:id="introImage" fitWidth="800" fitHeight="600" preserveRatio="false" />
     </children>
 </StackPane>

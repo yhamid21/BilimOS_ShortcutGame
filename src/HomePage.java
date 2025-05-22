@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
+import Levels.LevelProgressTracker;
 
 import java.io.IOException;
 
@@ -45,32 +46,43 @@ public class HomePage {
      * Dynamically creates the level buttons and customizes their behavior and appearance.
      */
     private void createLevelButtons() {
+        LevelProgressTracker tracker = LevelProgressTracker.getInstance();
+        int completedLevels = tracker.getCompletedLevelsCount();
+
         for (int i = 1; i <= totalLevels; i++) {
-            final int levelNumber = i; // Create a final copy of i for use in lambdas
+            final int levelNumber = i;
 
             Button levelButton = new Button("Level " + levelNumber);
             levelButton.setPrefSize(160, 80);
 
-            if (levelNumber <= completedLevels) {
-                // Completed levels
+            if (tracker.isLevelCompleted(levelNumber)) {
+                // Completed levels (gold)
                 levelButton.getStyleClass().add("completed-level");
                 levelButton.setOnAction(e -> openLevel(levelNumber));
-            } else if (levelNumber == completedLevels + 1) {
-                // Current unlocked level
+            } else if (tracker.isLevelUnlocked(levelNumber)) {
+                // Current unlocked level (green)
                 levelButton.getStyleClass().add("unlocked-level");
                 levelButton.setOnAction(e -> openLevel(levelNumber));
             } else {
-                // Locked levels
+                // Locked levels (red)
                 levelButton.getStyleClass().add("locked-level");
                 levelButton.setOnAction(e -> showLockedLevelMessage(levelNumber));
             }
 
-            levelGrid.add(levelButton, (levelNumber - 1) % 5, (levelNumber - 1) / 5); // Arrange buttons in a grid
+            levelGrid.add(levelButton, (levelNumber - 1) % 5, (levelNumber - 1) / 5);
         }
     }
 
+    private void updateProgressBar() {
+        LevelProgressTracker tracker = LevelProgressTracker.getInstance();
+        int completedLevels = tracker.getCompletedLevelsCount();
+        double progress = (double) completedLevels / totalLevels;
+        progressBar.setProgress(progress);
+    }
+
+
     /**
-     * Opens the specified level in a new maximized stage.
+     * Opens the specified level in the same window.
      *
      * @param levelNumber The number of the level to be opened.
      */
@@ -93,13 +105,24 @@ public class HomePage {
                 throw new IOException("Cannot find level file at: " + levelPath);
             }
 
+            // Load the level content
             Parent root = loader.load();
 
-            Stage levelStage = new Stage();
-            levelStage.setTitle("Level " + levelNumber);
-            levelStage.setScene(new Scene(root));
-            levelStage.setMaximized(true); // Open in maximized state
-            levelStage.show();
+            // Get the current stage using any component in the scene
+            Stage stage = (Stage) levelGrid.getScene().getWindow();
+
+            // Create a new scene with the level content and set it to the existing stage
+            Scene scene = new Scene(root);
+
+            // Load the stylesheet if needed
+            String cssPath = "/HomePageStyles.css";
+            if (getClass().getResource(cssPath) != null) {
+                scene.getStylesheets().add(getClass().getResource(cssPath).toExternalForm());
+            }
+
+            // Set the new scene to the existing stage
+            stage.setScene(scene);
+            stage.setTitle("Level " + levelNumber);
 
             System.out.println("Successfully loaded Level " + levelNumber);
         } catch (IOException e) {
@@ -154,11 +177,5 @@ public class HomePage {
         dialogStage.showAndWait();
     }
 
-    /**
-     * Updates the progress bar based on the number of completed levels.
-     */
-    private void updateProgressBar() {
-        double progress = (double) completedLevels / totalLevels;
-        progressBar.setProgress(progress);
-    }
+
 }

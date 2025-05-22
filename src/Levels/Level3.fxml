@@ -6,7 +6,11 @@
 <?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Levels.Level1" prefWidth="800" prefHeight="600">
+<StackPane xmlns="http://javafx.com/javafx/23.0.1"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="Levels.Level3"
+           prefWidth="800"
+           prefHeight="600">
     <children>
         <!-- Background Image -->
         <ImageView fx:id="backgroundImage" fitWidth="800" fitHeight="600" preserveRatio="false">
@@ -50,7 +54,7 @@
             <padding>
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
-            <Text text="Level 1: Copy Shortcut (Ctrl + C)" fill="white">
+            <Text text="Level 3: Cut and Paste (Ctrl + X, Ctrl + V)" fill="white">
                 <font>
                     <Font name="Arial Bold" size="28.0" />
                 </font>
@@ -59,7 +63,7 @@
                 </effect>
             </Text>
 
-            <Label text="Instruction: Press Ctrl+C to copy the selected text." wrapText="true" textFill="white">
+            <Label text="Instruction: Cut (Ctrl+X) the text from the top box and paste it (Ctrl+V) into the bottom box." wrapText="true" textFill="white">
                 <font>
                     <Font size="16.0" />
                 </font>
@@ -68,7 +72,21 @@
                 </effect>
             </Label>
 
-            <TextArea fx:id="textArea" promptText="Try copying this text..." prefHeight="150" prefWidth="600" />
+            <VBox spacing="15">
+                <Label text="Cut from this box:" textFill="white">
+                    <effect>
+                        <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                    </effect>
+                </Label>
+                <TextArea fx:id="sourceTextArea" promptText="Cut this text..." prefHeight="120" prefWidth="600" />
+
+                <Label text="Paste into this box:" textFill="white">
+                    <effect>
+                        <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                    </effect>
+                </Label>
+                <TextArea fx:id="targetTextArea" promptText="Paste the text here..." prefHeight="120" prefWidth="600" />
+            </VBox>
 
         </VBox>
 
@@ -93,7 +111,7 @@
                 </font>
             </Text>
 
-            <Text fx:id="hintText" text="To copy text, select it first and then press Ctrl+C on your keyboard." textAlignment="CENTER" wrappingWidth="400">
+            <Text fx:id="hintText" text="1. Select text in the top box and press Ctrl+X to cut it.&#10;2. Click in the bottom box and press Ctrl+V to paste." textAlignment="CENTER" wrappingWidth="400">
                 <font>
                     <Font size="14" />
                 </font>

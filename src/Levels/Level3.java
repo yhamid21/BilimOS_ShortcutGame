@@ -18,16 +18,15 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Level1 {
+public class Level3 {
 
-    @FXML private TextArea textArea;
+    @FXML private TextArea sourceTextArea;
+    @FXML private TextArea targetTextArea;
     @FXML private VBox congratsPopup;
     @FXML private ImageView backgroundImage;
     @FXML private Button homeButton;
@@ -42,12 +41,16 @@ public class Level1 {
 
     private boolean levelCompleted = false;
     private Stage currentStage;
+    private String originalText = "Level 3 Complete!";
 
     @FXML
     private void initialize() {
-        // Set the initial text in the TextArea and select it
-        textArea.setText("Level 1 Complete!");
-        textArea.selectAll();
+        // Set the initial text in the source TextArea and select it
+        sourceTextArea.setText(originalText);
+        sourceTextArea.selectAll();
+
+        // Clear the target TextArea
+        targetTextArea.clear();
 
         // Make sure congratsPopup is not visible at start
         if (congratsPopup != null) {
@@ -94,20 +97,40 @@ public class Level1 {
             closeHintButton.setOnAction(e -> hintPopup.setVisible(false));
         }
 
-        // Monitor for Ctrl+C keypresses
-        textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
-                // User pressed Ctrl+C
-                System.out.println("Ctrl+C detected!");
+        // Monitor for Ctrl+X keypresses in the source TextArea
+        sourceTextArea.setOnKeyPressed(event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.X) {
+                // User pressed Ctrl+X
+                System.out.println("Ctrl+X detected!");
 
-                // The text is already selected, so copying should work.
+                // The text is already selected, so cutting should work.
                 // Force a clipboard update in case it didn't happen automatically
                 ClipboardContent content = new ClipboardContent();
-                content.putString(textArea.getText());
+                content.putString("Level 3 Complete!");
                 Clipboard.getSystemClipboard().setContent(content);
 
-                // Check the clipboard
-                checkClipboardAndComplete();
+                // Verify the source text is now empty after cutting
+                sourceTextArea.setOnKeyReleased(releaseEvent -> {
+                    if (releaseEvent.getCode() == KeyCode.X) {
+                        checkSourceAreaIsEmpty();
+                    }
+                });
+            }
+        });
+
+        // Monitor for Ctrl+V keypresses in the target TextArea
+        targetTextArea.setOnKeyPressed(event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.V) {
+                // User pressed Ctrl+V
+                System.out.println("Ctrl+V detected!");
+
+                // Paste will happen automatically, we just need to check the result
+                // Schedule a check for after the paste operation completes
+                targetTextArea.setOnKeyReleased(releaseEvent -> {
+                    if (releaseEvent.getCode() == KeyCode.V) {
+                        checkPastedContentAndComplete();
+                    }
+                });
             }
         });
 
@@ -122,6 +145,15 @@ public class Level1 {
     }
 
     /**
+     * Check if the source text area is empty after cutting
+     */
+    private void checkSourceAreaIsEmpty() {
+        if (sourceTextArea.getText().trim().isEmpty()) {
+            System.out.println("Text successfully cut from source area");
+        }
+    }
+
+    /**
      * Shows the hint popup with level-specific information and images
      */
     private void showHintPopup() {
@@ -131,7 +163,7 @@ public class Level1 {
         }
 
         // Load hint images from the resources directory
-        List<Image> hintImages = loadHintImages("Level1");
+        List<Image> hintImages = loadHintImages("Level3");
 
         // If we have images, add them to the container
         if (!hintImages.isEmpty()) {
@@ -221,19 +253,20 @@ public class Level1 {
         return images;
     }
 
-    private void checkClipboardAndComplete() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            System.out.println("Clipboard content: " + clipboardText);
+    private void checkPastedContentAndComplete() {
+        String pastedText = targetTextArea.getText().trim();
+        String sourceText = sourceTextArea.getText().trim();
+        
+        System.out.println("Target TextArea content: " + pastedText);
+        System.out.println("Source TextArea content: " + sourceText);
 
-            if (clipboardText.contains("Level 1 Complete")) {
-                if (!levelCompleted) {
-                    levelCompleted = true;
-                    System.out.println("Level completed!");
-                    unlockNextLevel();
-                    showCompletionPopup();
-                }
+        // Check if the text has been moved from source to target
+        if (pastedText.contains("Level 3 Complete") && sourceText.isEmpty()) {
+            if (!levelCompleted) {
+                levelCompleted = true;
+                System.out.println("Level completed!");
+                unlockNextLevel();
+                showCompletionPopup();
             }
         }
     }
@@ -258,11 +291,11 @@ public class Level1 {
         popupContent.setStyle("-fx-border-color: #4CAF50;");
 
         // Add a completion title with trophy emoji
-        Text completedText = new Text("🏆 Level 1 Complete!");
+        Text completedText = new Text("🏆 Level 3 Complete!");
         completedText.getStyleClass().add("game-popup-title");
 
         // Add a congratulatory message
-        Text congratsText = new Text("Great job mastering Ctrl+C!");
+        Text congratsText = new Text("Great job mastering Ctrl+X and Ctrl+V!");
         congratsText.getStyleClass().add("game-popup-subtext");
 
         // Add navigation buttons in a horizontal layout
@@ -306,9 +339,9 @@ public class Level1 {
     }
 
     private void unlockNextLevel() {
-        // Mark level 1 as completed and unlock level 2
-        LevelProgressTracker.getInstance().completeLevel(1);
-        System.out.println("Level 1 completed and Level 2 unlocked!");
+        // Mark level 3 as completed and unlock level 4
+        LevelProgressTracker.getInstance().completeLevel(3);
+        System.out.println("Level 3 completed and Level 4 unlocked!");
     }
 
     private void goToHomePage() {
@@ -317,7 +350,7 @@ public class Level1 {
             Parent root = loader.load();
 
             // Get the current stage
-            Stage stage = (Stage) textArea.getScene().getWindow();
+            Stage stage = (Stage) sourceTextArea.getScene().getWindow();
 
             // Create a new scene with the loaded content
             Scene scene = new Scene(root);
@@ -339,11 +372,11 @@ public class Level1 {
 
     private void goToNextLevel() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level2.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level4.fxml"));
             Parent root = loader.load();
 
             // Get the current stage
-            Stage stage = (Stage) textArea.getScene().getWindow();
+            Stage stage = (Stage) sourceTextArea.getScene().getWindow();
 
             // Create a new scene with the loaded content
             Scene scene = new Scene(root);
@@ -356,12 +389,12 @@ public class Level1 {
 
             // Set the scene to the existing stage
             stage.setScene(scene);
-            stage.setTitle("Level 2");
+            stage.setTitle("Level 4");
         } catch (IOException e) {
-            System.err.println("Failed to load Level 2: " + e.getMessage());
+            System.err.println("Failed to load Level 4: " + e.getMessage());
             e.printStackTrace();
 
-            // If Level 2 doesn't exist yet, go back to home
+            // If Level 4 doesn't exist yet, go back to home
             try {
                 goToHomePage();
             } catch (Exception ex) {

@@ -25,6 +25,8 @@ public class IntroPageController {
                 introImage.fitHeightProperty().bind(newScene.heightProperty());
 
                 newScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+                introImage.setPreserveRatio(false);
+
             }
         });
     }
