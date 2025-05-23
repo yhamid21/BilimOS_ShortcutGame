@@ -29,7 +29,7 @@ public class HomePage {
     @FXML
     private ScrollPane levelScrollPane;
 
-    private final int totalLevels = 20; // Total number of levels
+    private final int totalLevels = 10; // Total number of levels
     private int completedLevels = 0;   // Number of completed levels
     private Stage primaryStage;       // Reference to the primary stage
 

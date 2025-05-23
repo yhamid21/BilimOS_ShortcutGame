@@ -68,7 +68,7 @@
     -fx-text-fill: black;
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-background-radius: 15px;
+    -fx-background-radius: 0px;
     -fx-border-color: #e0c200; 
     -fx-border-width: 3px;
     -fx-cursor: hand;
@@ -83,7 +83,7 @@
     -fx-text-fill: white;
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-background-radius: 15px;
+    -fx-background-radius: 0px;
     -fx-border-color: #D32F2F;
     -fx-border-width: 3px;
 }
