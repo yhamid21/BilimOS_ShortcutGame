@@ -43,7 +43,6 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Keyboard Shortcut Adventure");
 
-        // Open the main window in maximized state
         primaryStage.setMaximized(true);
 
         primaryStage.show();
