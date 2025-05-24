@@ -6,27 +6,27 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.io.File;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Level1 {
+public class Level7 {
 
     @FXML private TextArea textArea;
+    @FXML private Label statusLabel;
     @FXML private VBox congratsPopup;
     @FXML private ImageView backgroundImage;
     @FXML private Button homeButton;
@@ -41,14 +41,18 @@ public class Level1 {
 
     private boolean levelCompleted = false;
     private Stage currentStage;
+    private String originalText = "Level 7: Mastering Redo! Make a change to this text, then press Ctrl+Z to undo it, and finally press Ctrl+Y to redo your change.";
+    private String modifiedText = null;
+    private boolean textModified = false;
+    private boolean undoDetected = false;
+    private boolean redoDetected = false;
 
     @FXML
     private void initialize() {
-        // Set the initial text in the TextArea and select it
-        textArea.setText("Level 1 Complete!");
-        textArea.selectAll();
-
-//        LevelProgressTracker.getInstance().unlockAllLevels();
+        // Set the initial text in the TextArea
+        textArea.setText(originalText);
+        
+        // Make sure congratsPopup is not visible at start
         if (congratsPopup != null) {
             congratsPopup.setVisible(false);
         }
@@ -56,6 +60,12 @@ public class Level1 {
         // Make hint popup initially hidden
         if (hintPopup != null) {
             hintPopup.setVisible(false);
+        }
+
+        // Set initial status label text
+        if (statusLabel != null) {
+            statusLabel.setText("Step 1: Make a change to the text.");
+            statusLabel.setVisible(true);
         }
 
         // Make background fill the screen
@@ -93,20 +103,43 @@ public class Level1 {
             closeHintButton.setOnAction(e -> hintPopup.setVisible(false));
         }
 
-        // Monitor for Ctrl+C keypresses
+        // Monitor for text changes to detect modifications
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(originalText) && !textModified) {
+                textModified = true;
+                modifiedText = newValue;
+                statusLabel.setText("Step 2: Now press Ctrl+Z to undo your change.");
+                statusLabel.setVisible(true);
+                System.out.println("Text modified: " + newValue);
+            }
+        });
+
+        // Monitor for Ctrl+Z and Ctrl+Y keypresses
         textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
-                // User pressed Ctrl+C
-                System.out.println("Ctrl+C detected!");
-
-                // The text is already selected, so copying should work.
-                // Force a clipboard update in case it didn't happen automatically
-                ClipboardContent content = new ClipboardContent();
-                content.putString(textArea.getText());
-                Clipboard.getSystemClipboard().setContent(content);
-
-                // Check the clipboard
-                checkClipboardAndComplete();
+            // Check for Ctrl+Z (Undo)
+            if (event.isControlDown() && event.getCode() == KeyCode.Z) {
+                // User pressed Ctrl+Z
+                System.out.println("Ctrl+Z detected!");
+                
+                // The undo will happen automatically, we just need to check the result
+                textArea.setOnKeyReleased(releaseEvent -> {
+                    if (releaseEvent.getCode() == KeyCode.Z) {
+                        checkUndoAndUpdateStatus();
+                    }
+                });
+            }
+            
+            // Check for Ctrl+Y (Redo)
+            else if (event.isControlDown() && event.getCode() == KeyCode.Y) {
+                // User pressed Ctrl+Y
+                System.out.println("Ctrl+Y detected!");
+                
+                // The redo will happen automatically, we just need to check the result
+                textArea.setOnKeyReleased(releaseEvent -> {
+                    if (releaseEvent.getCode() == KeyCode.Y) {
+                        checkRedoAndComplete();
+                    }
+                });
             }
         });
 
@@ -121,6 +154,44 @@ public class Level1 {
     }
 
     /**
+     * Checks if undo was successful and updates the status
+     */
+    private void checkUndoAndUpdateStatus() {
+        String currentText = textArea.getText();
+        System.out.println("After Ctrl+Z, text is: " + currentText);
+
+        // Check if the text has been restored to original after being modified
+        if (currentText.equals(originalText) && textModified) {
+            undoDetected = true;
+            statusLabel.setText("Step 3: Great! Now press Ctrl+Y to redo your change.");
+            statusLabel.setVisible(true);
+        }
+    }
+
+    /**
+     * Checks if redo was successful and completes the level if all steps are done
+     */
+    private void checkRedoAndComplete() {
+        String currentText = textArea.getText();
+        System.out.println("After Ctrl+Y, text is: " + currentText);
+
+        // Check if the text has been restored to the modified version after being undone
+        if (modifiedText != null && currentText.equals(modifiedText) && undoDetected) {
+            redoDetected = true;
+            statusLabel.setText("Great job! You've successfully used Ctrl+Z to undo and Ctrl+Y to redo!");
+            statusLabel.setVisible(true);
+            
+            // Complete the level if all steps are done
+            if (textModified && undoDetected && redoDetected && !levelCompleted) {
+                levelCompleted = true;
+                System.out.println("Level completed!");
+                unlockNextLevel();
+                showCompletionPopup();
+            }
+        }
+    }
+
+    /**
      * Shows the hint popup with level-specific information and images
      */
     private void showHintPopup() {
@@ -130,7 +201,7 @@ public class Level1 {
         }
 
         // Load hint images from the resources directory
-        List<Image> hintImages = loadHintImages("Level1");
+        List<Image> hintImages = loadHintImages("Level7");
 
         // If we have images, add them to the container
         if (!hintImages.isEmpty()) {
@@ -220,23 +291,6 @@ public class Level1 {
         return images;
     }
 
-    private void checkClipboardAndComplete() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            System.out.println("Clipboard content: " + clipboardText);
-
-            if (clipboardText.contains("Level 1 Complete")) {
-                if (!levelCompleted) {
-                    levelCompleted = true;
-                    System.out.println("Level completed!");
-                    unlockNextLevel();
-                    showCompletionPopup();
-                }
-            }
-        }
-    }
-
     /**
      * Shows a styled completion popup similar to the locked level popup
      */
@@ -257,15 +311,15 @@ public class Level1 {
         popupContent.setStyle("-fx-border-color: #4CAF50;");
 
         // Add a completion title with trophy emoji
-        Text completedText = new Text("🏆 Level 1 Complete!");
+        Text completedText = new Text("🏆 Level 7 Complete!");
         completedText.getStyleClass().add("game-popup-title");
 
         // Add a congratulatory message
-        Text congratsText = new Text("Great job mastering Ctrl+C!");
+        Text congratsText = new Text("Great job mastering Ctrl+Y (Redo)!");
         congratsText.getStyleClass().add("game-popup-subtext");
 
         // Add navigation buttons in a horizontal layout
-        javafx.scene.layout.HBox buttonBox = new javafx.scene.layout.HBox(10);
+        HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER);
 
         // Home button
@@ -305,9 +359,9 @@ public class Level1 {
     }
 
     private void unlockNextLevel() {
-        // Mark level 1 as completed and unlock level 2
-        LevelProgressTracker.getInstance().completeLevel(1);
-        System.out.println("Level 1 completed and Level 2 unlocked!");
+        // Mark level 7 as completed and unlock level 8
+        LevelProgressTracker.getInstance().completeLevel(7);
+        System.out.println("Level 7 completed and Level 8 unlocked!");
     }
 
     private void goToHomePage() {
@@ -338,7 +392,7 @@ public class Level1 {
 
     private void goToNextLevel() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level2.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level8.fxml"));
             Parent root = loader.load();
 
             // Get the current stage
@@ -355,12 +409,12 @@ public class Level1 {
 
             // Set the scene to the existing stage
             stage.setScene(scene);
-            stage.setTitle("Level 2");
+            stage.setTitle("Level 8");
         } catch (IOException e) {
-            System.err.println("Failed to load Level 2: " + e.getMessage());
+            System.err.println("Failed to load Level 8: " + e.getMessage());
             e.printStackTrace();
 
-            // If Level 2 doesn't exist yet, go back to home
+            // If Level 8 doesn't exist yet, go back to home
             try {
                 goToHomePage();
             } catch (Exception ex) {

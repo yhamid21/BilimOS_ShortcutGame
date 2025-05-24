@@ -5,28 +5,25 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.io.File;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Level1 {
+public class Level5 {
 
     @FXML private TextArea textArea;
+    @FXML private Label statusLabel;
     @FXML private VBox congratsPopup;
     @FXML private ImageView backgroundImage;
     @FXML private Button homeButton;
@@ -41,14 +38,30 @@ public class Level1 {
 
     private boolean levelCompleted = false;
     private Stage currentStage;
+    private Stage searchDialog = null;
+    private boolean searchDialogShown = false;
+    private boolean treasureFound = false;
 
     @FXML
     private void initialize() {
-        // Set the initial text in the TextArea and select it
-        textArea.setText("Level 1 Complete!");
-        textArea.selectAll();
-
-//        LevelProgressTracker.getInstance().unlockAllLevels();
+        // Set the initial text in the TextArea with a story containing the word "treasure"
+        String storyText = "The Adventure of the Hidden Word\n\n" +
+                "Once upon a time, in a digital kingdom far away, there lived a brave explorer named Alex. " +
+                "Alex was known throughout the land for solving puzzles and finding hidden secrets.\n\n" +
+                "One day, a mysterious message appeared on Alex's computer screen. It read: " +
+                "'To find the greatest treasure in all the kingdom, you must learn to search efficiently.'\n\n" +
+                "Alex knew that somewhere in this story, the word 'treasure' was hidden, but reading through " +
+                "everything line by line would take too long. There had to be a better way to search!\n\n" +
+                "The wise old wizard of the kingdom had once taught Alex about a magical shortcut - " +
+                "pressing Ctrl+F would reveal a search box that could find any word instantly.\n\n" +
+                "Alex remembered the wizard's advice and decided to try it. 'If I can find the hidden treasure " +
+                "using Ctrl+F, I'll prove that I've mastered the art of efficient searching,' thought Alex.\n\n" +
+                "The kingdom waited anxiously. Would Alex find the treasure and save the day? Only by using " +
+                "the power of Ctrl+F would the hidden treasure be revealed and the level completed.";
+        
+        textArea.setText(storyText);
+        
+        // Make sure congratsPopup is not visible at start
         if (congratsPopup != null) {
             congratsPopup.setVisible(false);
         }
@@ -56,6 +69,11 @@ public class Level1 {
         // Make hint popup initially hidden
         if (hintPopup != null) {
             hintPopup.setVisible(false);
+        }
+
+        // Make status label initially hidden
+        if (statusLabel != null) {
+            statusLabel.setVisible(false);
         }
 
         // Make background fill the screen
@@ -93,20 +111,17 @@ public class Level1 {
             closeHintButton.setOnAction(e -> hintPopup.setVisible(false));
         }
 
-        // Monitor for Ctrl+C keypresses
+        // Monitor for Ctrl+F keypresses
         textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
-                // User pressed Ctrl+C
-                System.out.println("Ctrl+C detected!");
-
-                // The text is already selected, so copying should work.
-                // Force a clipboard update in case it didn't happen automatically
-                ClipboardContent content = new ClipboardContent();
-                content.putString(textArea.getText());
-                Clipboard.getSystemClipboard().setContent(content);
-
-                // Check the clipboard
-                checkClipboardAndComplete();
+            if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                // User pressed Ctrl+F
+                System.out.println("Ctrl+F detected!");
+                event.consume(); // Prevent default browser behavior
+                
+                // Show search dialog if not already shown
+                if (!searchDialogShown) {
+                    showSearchDialog();
+                }
             }
         });
 
@@ -121,6 +136,114 @@ public class Level1 {
     }
 
     /**
+     * Shows a custom search dialog when Ctrl+F is pressed
+     */
+    private void showSearchDialog() {
+        searchDialogShown = true;
+        
+        // Create a custom dialog
+        searchDialog = new Stage();
+        if (currentStage != null) {
+            searchDialog.initOwner(currentStage);
+        }
+        searchDialog.initModality(Modality.NONE); // Allow interaction with main window
+        searchDialog.setTitle("Find");
+        
+        // Create the layout for the search dialog
+        VBox dialogContent = new VBox(10);
+        dialogContent.setAlignment(Pos.CENTER);
+        dialogContent.setPadding(new javafx.geometry.Insets(15));
+        dialogContent.setStyle("-fx-background-color: white; -fx-border-color: #3498db; -fx-border-width: 2px;");
+        
+        // Add search field and buttons
+        HBox searchBox = new HBox(10);
+        searchBox.setAlignment(Pos.CENTER);
+        
+        Label findLabel = new Label("Find:");
+        TextField searchField = new TextField();
+        searchField.setPrefWidth(200);
+        
+        Button findButton = new Button("Find Next");
+        findButton.setDefaultButton(true);
+        
+        searchBox.getChildren().addAll(findLabel, searchField, findButton);
+        
+        // Add close button
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(e -> searchDialog.close());
+        
+        dialogContent.getChildren().addAll(searchBox, closeButton);
+        
+        // Set up search functionality
+        findButton.setOnAction(e -> {
+            String searchTerm = searchField.getText().toLowerCase();
+            String content = textArea.getText().toLowerCase();
+            
+            if (searchTerm.isEmpty()) {
+                return;
+            }
+            
+            // Check if the search term is "treasure"
+            if (searchTerm.equals("treasure")) {
+                // Highlight all occurrences of "treasure" in the text
+                int index = content.indexOf(searchTerm);
+                if (index >= 0) {
+                    textArea.selectRange(index, index + searchTerm.length());
+                    treasureFound = true;
+                    
+                    // Update status label
+                    if (statusLabel != null) {
+                        statusLabel.setText("Great job! You found the treasure using Ctrl+F!");
+                        statusLabel.setVisible(true);
+                    }
+                    
+                    // Complete the level
+                    if (!levelCompleted) {
+                        levelCompleted = true;
+                        System.out.println("Level completed!");
+                        unlockNextLevel();
+                        showCompletionPopup();
+                    }
+                }
+            } else {
+                // For other search terms, just highlight them if found
+                int index = content.indexOf(searchTerm);
+                if (index >= 0) {
+                    textArea.selectRange(index, index + searchTerm.length());
+                    
+                    // Update status label with a hint
+                    if (statusLabel != null) {
+                        statusLabel.setText("You're searching, but not for the right word. Try searching for 'treasure'!");
+                        statusLabel.setVisible(true);
+                    }
+                } else {
+                    // Not found
+                    if (statusLabel != null) {
+                        statusLabel.setText("No matches found. Try searching for 'treasure'!");
+                        statusLabel.setVisible(true);
+                    }
+                }
+            }
+        });
+        
+        // Create and style the scene
+        Scene dialogScene = new Scene(dialogContent, 400, 120);
+        
+        // Load the stylesheet
+        String cssPath = "/HomePageStyles.css";
+        if (getClass().getResource(cssPath) != null) {
+            dialogScene.getStylesheets().add(getClass().getResource(cssPath).toExternalForm());
+        }
+        
+        searchDialog.setScene(dialogScene);
+        searchDialog.setResizable(false);
+        searchDialog.show();
+        
+        // Focus on the search field
+        searchField.requestFocus();
+    }
+
+    /**
      * Shows the hint popup with level-specific information and images
      */
     private void showHintPopup() {
@@ -130,7 +253,7 @@ public class Level1 {
         }
 
         // Load hint images from the resources directory
-        List<Image> hintImages = loadHintImages("Level1");
+        List<Image> hintImages = loadHintImages("Level5");
 
         // If we have images, add them to the container
         if (!hintImages.isEmpty()) {
@@ -220,27 +343,15 @@ public class Level1 {
         return images;
     }
 
-    private void checkClipboardAndComplete() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            System.out.println("Clipboard content: " + clipboardText);
-
-            if (clipboardText.contains("Level 1 Complete")) {
-                if (!levelCompleted) {
-                    levelCompleted = true;
-                    System.out.println("Level completed!");
-                    unlockNextLevel();
-                    showCompletionPopup();
-                }
-            }
-        }
-    }
-
     /**
      * Shows a styled completion popup similar to the locked level popup
      */
     private void showCompletionPopup() {
+        // Close search dialog if open
+        if (searchDialog != null && searchDialog.isShowing()) {
+            searchDialog.close();
+        }
+        
         // Create a custom dialog
         Stage dialogStage = new Stage();
         if (currentStage != null) {
@@ -257,15 +368,15 @@ public class Level1 {
         popupContent.setStyle("-fx-border-color: #4CAF50;");
 
         // Add a completion title with trophy emoji
-        Text completedText = new Text("🏆 Level 1 Complete!");
+        Text completedText = new Text("🏆 Level 5 Complete!");
         completedText.getStyleClass().add("game-popup-title");
 
         // Add a congratulatory message
-        Text congratsText = new Text("Great job mastering Ctrl+C!");
+        Text congratsText = new Text("Great job mastering Ctrl+F (Find)!");
         congratsText.getStyleClass().add("game-popup-subtext");
 
         // Add navigation buttons in a horizontal layout
-        javafx.scene.layout.HBox buttonBox = new javafx.scene.layout.HBox(10);
+        HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER);
 
         // Home button
@@ -305,9 +416,9 @@ public class Level1 {
     }
 
     private void unlockNextLevel() {
-        // Mark level 1 as completed and unlock level 2
-        LevelProgressTracker.getInstance().completeLevel(1);
-        System.out.println("Level 1 completed and Level 2 unlocked!");
+        // Mark level 5 as completed and unlock level 6
+        LevelProgressTracker.getInstance().completeLevel(5);
+        System.out.println("Level 5 completed and Level 6 unlocked!");
     }
 
     private void goToHomePage() {
@@ -338,7 +449,7 @@ public class Level1 {
 
     private void goToNextLevel() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level2.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level6.fxml"));
             Parent root = loader.load();
 
             // Get the current stage
@@ -355,12 +466,12 @@ public class Level1 {
 
             // Set the scene to the existing stage
             stage.setScene(scene);
-            stage.setTitle("Level 2");
+            stage.setTitle("Level 6");
         } catch (IOException e) {
-            System.err.println("Failed to load Level 2: " + e.getMessage());
+            System.err.println("Failed to load Level 6: " + e.getMessage());
             e.printStackTrace();
 
-            // If Level 2 doesn't exist yet, go back to home
+            // If Level 6 doesn't exist yet, go back to home
             try {
                 goToHomePage();
             } catch (Exception ex) {

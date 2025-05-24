@@ -1,32 +1,40 @@
 package Levels;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.io.File;
+import javafx.util.Duration;
+import javafx.application.Platform;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Level1 {
+public class Level8 {
 
     @FXML private TextArea textArea;
+    @FXML private Label statusLabel;
+    @FXML private Label lastSavedLabel;
+    @FXML private Label savingIndicator;
     @FXML private VBox congratsPopup;
     @FXML private ImageView backgroundImage;
     @FXML private Button homeButton;
@@ -41,14 +49,22 @@ public class Level1 {
 
     private boolean levelCompleted = false;
     private Stage currentStage;
+    private String originalText = "Level 14: Document Saved! This document contains important notes. Make some changes to this text, then press Ctrl+S to save your work.";
+    private boolean textModified = false;
+    private boolean saveDetected = false;
+    private LocalDateTime lastSavedTime;
+    private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @FXML
     private void initialize() {
-        // Set the initial text in the TextArea and select it
-        textArea.setText("Level 1 Complete!");
-        textArea.selectAll();
-
-//        LevelProgressTracker.getInstance().unlockAllLevels();
+        // Set the initial text in the TextArea
+        textArea.setText(originalText);
+        
+        // Set initial last saved time
+        lastSavedTime = LocalDateTime.now();
+        updateLastSavedLabel();
+        
+        // Make sure congratsPopup is not visible at start
         if (congratsPopup != null) {
             congratsPopup.setVisible(false);
         }
@@ -56,6 +72,17 @@ public class Level1 {
         // Make hint popup initially hidden
         if (hintPopup != null) {
             hintPopup.setVisible(false);
+        }
+
+        // Make saving indicator initially hidden
+        if (savingIndicator != null) {
+            savingIndicator.setVisible(false);
+        }
+
+        // Set initial status label text
+        if (statusLabel != null) {
+            statusLabel.setText("Make changes to this document, then press Ctrl+S to save.");
+            statusLabel.setVisible(true);
         }
 
         // Make background fill the screen
@@ -93,20 +120,29 @@ public class Level1 {
             closeHintButton.setOnAction(e -> hintPopup.setVisible(false));
         }
 
-        // Monitor for Ctrl+C keypresses
+        // Monitor for text changes to detect modifications
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(originalText) && !textModified) {
+                textModified = true;
+                statusLabel.setText("Document has unsaved changes. Press Ctrl+S to save.");
+                statusLabel.setVisible(true);
+                System.out.println("Text modified: " + newValue);
+            } else if (newValue.equals(originalText) && textModified) {
+                textModified = false;
+                statusLabel.setText("Document is unchanged since last save.");
+                statusLabel.setVisible(true);
+            }
+        });
+
+        // Monitor for Ctrl+S keypress
         textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
-                // User pressed Ctrl+C
-                System.out.println("Ctrl+C detected!");
-
-                // The text is already selected, so copying should work.
-                // Force a clipboard update in case it didn't happen automatically
-                ClipboardContent content = new ClipboardContent();
-                content.putString(textArea.getText());
-                Clipboard.getSystemClipboard().setContent(content);
-
-                // Check the clipboard
-                checkClipboardAndComplete();
+            if (event.isControlDown() && event.getCode() == KeyCode.S) {
+                // User pressed Ctrl+S
+                System.out.println("Ctrl+S detected!");
+                event.consume(); // Prevent default browser behavior
+                
+                // Show saving animation and update timestamp
+                saveDocument();
             }
         });
 
@@ -121,6 +157,52 @@ public class Level1 {
     }
 
     /**
+     * Simulates saving the document and updates UI accordingly
+     */
+    private void saveDocument() {
+        // Show saving indicator
+        if (savingIndicator != null) {
+            savingIndicator.setText("Saving...");
+            savingIndicator.setVisible(true);
+            
+            // Create a timeline to hide the indicator after a short delay
+            Timeline timeline = new Timeline(new KeyFrame(
+                Duration.seconds(1.5),
+                ae -> {
+                    savingIndicator.setVisible(false);
+                    
+                    // Update last saved time
+                    lastSavedTime = LocalDateTime.now();
+                    updateLastSavedLabel();
+                    
+                    // Update status
+                    statusLabel.setText("Document saved successfully!");
+                    
+                    // Mark as saved
+                    saveDetected = true;
+                    
+                    // Complete level if changes were made and saved
+                    levelCompleted = true;
+                    System.out.println("Level completed!");
+                    unlockNextLevel();
+                    
+                    // Schedule the popup to appear after animation completes
+                    Platform.runLater(this::showCompletionPopup);
+                }));
+            timeline.play();
+        }
+    }
+    
+    /**
+     * Updates the last saved timestamp label
+     */
+    private void updateLastSavedLabel() {
+        if (lastSavedLabel != null) {
+            lastSavedLabel.setText("Last saved: " + lastSavedTime.format(timeFormatter));
+        }
+    }
+
+    /**
      * Shows the hint popup with level-specific information and images
      */
     private void showHintPopup() {
@@ -130,7 +212,7 @@ public class Level1 {
         }
 
         // Load hint images from the resources directory
-        List<Image> hintImages = loadHintImages("Level1");
+        List<Image> hintImages = loadHintImages("Level14");
 
         // If we have images, add them to the container
         if (!hintImages.isEmpty()) {
@@ -220,23 +302,6 @@ public class Level1 {
         return images;
     }
 
-    private void checkClipboardAndComplete() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            System.out.println("Clipboard content: " + clipboardText);
-
-            if (clipboardText.contains("Level 1 Complete")) {
-                if (!levelCompleted) {
-                    levelCompleted = true;
-                    System.out.println("Level completed!");
-                    unlockNextLevel();
-                    showCompletionPopup();
-                }
-            }
-        }
-    }
-
     /**
      * Shows a styled completion popup similar to the locked level popup
      */
@@ -257,15 +322,15 @@ public class Level1 {
         popupContent.setStyle("-fx-border-color: #4CAF50;");
 
         // Add a completion title with trophy emoji
-        Text completedText = new Text("🏆 Level 1 Complete!");
+        Text completedText = new Text("🏆 Level 8 Complete!");
         completedText.getStyleClass().add("game-popup-title");
 
         // Add a congratulatory message
-        Text congratsText = new Text("Great job mastering Ctrl+C!");
+        Text congratsText = new Text("Great job mastering Ctrl+D (Duplicate Line)!");
         congratsText.getStyleClass().add("game-popup-subtext");
 
         // Add navigation buttons in a horizontal layout
-        javafx.scene.layout.HBox buttonBox = new javafx.scene.layout.HBox(10);
+        HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER);
 
         // Home button
@@ -301,13 +366,13 @@ public class Level1 {
         }
 
         dialogStage.setScene(dialogScene);
-        dialogStage.showAndWait();
+        dialogStage.show(); // Use show() instead of showAndWait()
     }
 
     private void unlockNextLevel() {
-        // Mark level 1 as completed and unlock level 2
-        LevelProgressTracker.getInstance().completeLevel(1);
-        System.out.println("Level 1 completed and Level 2 unlocked!");
+        // Mark level 14 as completed and unlock level 15
+        LevelProgressTracker.getInstance().completeLevel(8);
+        System.out.println("Level 8 completed and Level 9 unlocked!");
     }
 
     private void goToHomePage() {
@@ -338,7 +403,7 @@ public class Level1 {
 
     private void goToNextLevel() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level2.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level15.fxml"));
             Parent root = loader.load();
 
             // Get the current stage
@@ -355,12 +420,12 @@ public class Level1 {
 
             // Set the scene to the existing stage
             stage.setScene(scene);
-            stage.setTitle("Level 2");
+            stage.setTitle("Level 15");
         } catch (IOException e) {
-            System.err.println("Failed to load Level 2: " + e.getMessage());
+            System.err.println("Failed to load Level 15: " + e.getMessage());
             e.printStackTrace();
 
-            // If Level 2 doesn't exist yet, go back to home
+            // If Level 15 doesn't exist yet, go back to home
             try {
                 goToHomePage();
             } catch (Exception ex) {

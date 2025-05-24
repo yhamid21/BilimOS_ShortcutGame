@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/23.0.1"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="Levels.Level10"
+           prefWidth="800"
+           prefHeight="600">
+    <children>
+        <!-- Background Image -->
+        <ImageView fx:id="backgroundImage" fitWidth="800" fitHeight="600" preserveRatio="false">
+            <image>
+                <Image url="@../Resources/Backgrounds/LevelsBG2.png" />
+            </image>
+        </ImageView>
+
+        <!-- Navigation Buttons - Top Left -->
+        <AnchorPane>
+            <HBox spacing="10" AnchorPane.topAnchor="15" AnchorPane.leftAnchor="15">
+                <Button fx:id="topHomeButton" styleClass="icon-button">
+                    <graphic>
+                        <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">
+                            <image>
+                                <Image url="@../Resources/Icons/Home.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Return to Home" />
+                    </tooltip>
+                </Button>
+                <Button fx:id="hintButton" styleClass="icon-button">
+                    <graphic>
+                        <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">
+                            <image>
+                                <Image url="@../Resources/Icons/Hint.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Get a Hint" />
+                    </tooltip>
+                </Button>
+            </HBox>
+        </AnchorPane>
+
+        <!-- Content -->
+        <VBox fx:id="mainContent" alignment="CENTER" spacing="20" maxWidth="700">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+            <Text text="Level 10: Code Refactoring Challenge" fill="white">
+                <font>
+                    <Font name="Arial Bold" size="28.0" />
+                </font>
+                <effect>
+                    <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                </effect>
+            </Text>
+
+            <Label text="Refactor the code below using keyboard shortcuts to complete all tasks. Press Ctrl+S when finished." wrapText="true" textFill="white">
+                <font>
+                    <Font size="16.0" />
+                </font>
+                <effect>
+                    <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                </effect>
+            </Label>
+
+            <!-- Stats Bar -->
+            <HBox spacing="15" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.3); -fx-padding: 5px; -fx-background-radius: 5px;">
+                <Label fx:id="operationCounterLabel" text="Operations: 0" textFill="white">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
+                <Label fx:id="timerLabel" text="Time: 00:00" textFill="white">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
+                <Label fx:id="shortcutUsedLabel" text="" textFill="#4CAF50" visible="false">
+                    <font>
+                        <Font name="Arial Bold" size="14.0" />
+                    </font>
+                </Label>
+            </HBox>
+
+            <!-- Main Content Area -->
+            <HBox spacing="10" alignment="CENTER">
+                <!-- Code Editor -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="400">
+                    <Label text="Code Editor" textFill="white">
+                        <font>
+                            <Font name="Arial Bold" size="14.0" />
+                        </font>
+                    </Label>
+                    <TextArea fx:id="codeEditorTextArea" promptText="Edit this code..." prefHeight="300" wrapText="true" VBox.vgrow="ALWAYS" style="-fx-font-family: 'Courier New'; -fx-font-size: 12px;" />
+                </VBox>
+                
+                <!-- Task List -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="250">
+                    <Label text="Tasks to Complete" textFill="white">
+                        <font>
+                            <Font name="Arial Bold" size="14.0" />
+                        </font>
+                    </Label>
+                    <VBox fx:id="taskListContainer" spacing="5" style="-fx-background-color: rgba(255,255,255,0.9); -fx-padding: 10px; -fx-background-radius: 5px;" prefHeight="300" VBox.vgrow="ALWAYS">
+                        <!-- Task items will be added programmatically -->
+                        <CheckBox fx:id="task1" text="Move the calculateTotal method above the main method" wrapText="true" />
+                        <CheckBox fx:id="task2" text="Fix indentation in the displayWelcome method" wrapText="true" />
+                        <CheckBox fx:id="task3" text="Remove the duplicate code in the processOrder method" wrapText="true" />
+                        <CheckBox fx:id="task4" text="Comment out the debug print statements" wrapText="true" />
+                        <CheckBox fx:id="task5" text="Fix the indentation of the entire class" wrapText="true" />
+                    </VBox>
+                </VBox>
+            </HBox>
+
+            <Label fx:id="statusLabel" text="Use keyboard shortcuts to refactor the code and complete all tasks." textFill="white" visible="true" wrapText="true">
+                <font>
+                    <Font size="16.0" />
+                </font>
+                <effect>
+                    <javafx.scene.effect.DropShadow color="BLACK" radius="2" spread="0.2" />
+                </effect>
+            </Label>
+
+        </VBox>
+
+        <!-- Congratulation Popup Overlay -->
+        <VBox fx:id="congratsPopup" alignment="CENTER" spacing="15" style="-fx-background-color: white; -fx-border-color: #4CAF50; -fx-border-width: 3px; -fx-background-radius: 10; -fx-padding: 20;" visible="false" maxWidth="400">
+            <Text text="🎉 Congratulations!" wrappingWidth="300">
+                <font>
+                    <Font name="Arial Bold" size="24" />
+                </font>
+            </Text>
+            <Text fx:id="congratsText" text="You've completed the Code Refactoring Challenge!" wrappingWidth="300" textAlignment="CENTER">
+                <font>
+                    <Font size="16" />
+                </font>
+            </Text>
+            <HBox alignment="CENTER" spacing="20">
+                <Button fx:id="homeButton" text="Homepage" />
+                <Button fx:id="nextLevelButton" text="Next Level" />
+            </HBox>
+        </VBox>
+
+        <!-- Hint Popup Overlay - Initially Hidden -->
+        <VBox fx:id="hintPopup" alignment="CENTER" spacing="15" style="-fx-background-color: white; -fx-border-color: #3498db; -fx-border-width: 3px; -fx-background-radius: 10; -fx-padding: 20;" visible="false" maxWidth="500" maxHeight="500">
+            <Text text="💡 Hint" textAlignment="CENTER" wrappingWidth="400">
+                <font>
+                    <Font name="Arial Bold" size="24" />
+                </font>
+            </Text>
+
+            <Text fx:id="hintText" text="Use these shortcuts to efficiently refactor the code:&#10;&#10;Ctrl+C: Copy selected text&#10;Ctrl+V: Paste copied text&#10;Ctrl+X: Cut selected text&#10;Ctrl+Z: Undo last action&#10;Ctrl+Y: Redo last undone action&#10;Ctrl+F: Find text&#10;Ctrl+D: Duplicate line&#10;Ctrl+Home/End: Jump to start/end&#10;Tab/Shift+Tab: Indent/Unindent&#10;Ctrl+/: Comment/Uncomment&#10;Ctrl+S: Save and check progress" textAlignment="CENTER" wrappingWidth="400">
+                <font>
+                    <Font size="14" />
+                </font>
+            </Text>
+
+            <ScrollPane fx:id="hintImagesScroll" fitToWidth="true" prefHeight="300" prefWidth="450" styleClass="hint-scroll-pane">
+                <VBox fx:id="hintImagesContainer" alignment="CENTER" spacing="15" />
+            </ScrollPane>
+
+            <Button fx:id="closeHintButton" text="Got it!" styleClass="game-popup-button" style="-fx-background-color: #3498db; -fx-border-color: #2980b9;" />
+        </VBox>
+    </children>
+</StackPane>

@@ -5,28 +5,25 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.io.File;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Level1 {
+public class Level6 {
 
     @FXML private TextArea textArea;
+    @FXML private Label statusLabel;
     @FXML private VBox congratsPopup;
     @FXML private ImageView backgroundImage;
     @FXML private Button homeButton;
@@ -41,14 +38,30 @@ public class Level1 {
 
     private boolean levelCompleted = false;
     private Stage currentStage;
+    private boolean textSelected = false;
 
     @FXML
     private void initialize() {
-        // Set the initial text in the TextArea and select it
-        textArea.setText("Level 1 Complete!");
-        textArea.selectAll();
-
-//        LevelProgressTracker.getInstance().unlockAllLevels();
+        // Set the initial text in the TextArea with multiple paragraphs
+        String storyText = "The Power of Select All\n\n" +
+                "In the digital realm, there exists a powerful shortcut that can save countless hours " +
+                "of tedious highlighting. This magical key combination is known as Ctrl+A, the Select All command.\n\n" +
+                "Imagine you're working on an important document with multiple paragraphs of text. " +
+                "You need to copy everything to share with a colleague. Without the right shortcut, " +
+                "you might spend precious time dragging your cursor from the beginning to the end, " +
+                "hoping not to miss a single character.\n\n" +
+                "But the wise keyboard wizards created a better way. With a simple press of Ctrl+A, " +
+                "every word, every sentence, every paragraph is instantly selected. No more tedious " +
+                "dragging, no more missed sections, just perfect selection every time.\n\n" +
+                "This powerful command works in text editors, word processors, browsers, and almost " +
+                "any application where text selection is possible. It's one of the most universally " +
+                "useful shortcuts in the digital toolkit.\n\n" +
+                "To complete this level, try using Ctrl+A to select all the text in this box. " +
+                "Once you've mastered this shortcut, you'll wonder how you ever lived without it!";
+        
+        textArea.setText(storyText);
+        
+        // Make sure congratsPopup is not visible at start
         if (congratsPopup != null) {
             congratsPopup.setVisible(false);
         }
@@ -56,6 +69,12 @@ public class Level1 {
         // Make hint popup initially hidden
         if (hintPopup != null) {
             hintPopup.setVisible(false);
+        }
+
+        // Set initial status label text
+        if (statusLabel != null) {
+            statusLabel.setText("Press Ctrl+A to select all text in the box below.");
+            statusLabel.setVisible(true);
         }
 
         // Make background fill the screen
@@ -93,21 +112,25 @@ public class Level1 {
             closeHintButton.setOnAction(e -> hintPopup.setVisible(false));
         }
 
-        // Monitor for Ctrl+C keypresses
+        // Monitor for Ctrl+A keypresses
         textArea.setOnKeyPressed(event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.C) {
-                // User pressed Ctrl+C
-                System.out.println("Ctrl+C detected!");
-
-                // The text is already selected, so copying should work.
-                // Force a clipboard update in case it didn't happen automatically
-                ClipboardContent content = new ClipboardContent();
-                content.putString(textArea.getText());
-                Clipboard.getSystemClipboard().setContent(content);
-
-                // Check the clipboard
-                checkClipboardAndComplete();
+            if (event.isControlDown() && event.getCode() == KeyCode.A) {
+                // User pressed Ctrl+A
+                System.out.println("Ctrl+A detected!");
+                
+                // The selection will happen automatically by the TextArea
+                // We'll check the selection on key release to ensure it's complete
+                textArea.setOnKeyReleased(releaseEvent -> {
+                    if (releaseEvent.getCode() == KeyCode.A) {
+                        checkSelectionAndComplete();
+                    }
+                });
             }
+        });
+
+        // Also monitor for selection changes in the TextArea
+        textArea.selectionProperty().addListener((obs, oldSelection, newSelection) -> {
+            checkSelectionAndComplete();
         });
 
         // Configure home and next buttons if they exist
@@ -121,6 +144,36 @@ public class Level1 {
     }
 
     /**
+     * Checks if all text is selected and completes the level if it is
+     */
+    private void checkSelectionAndComplete() {
+        // Get the selected text and the full text
+        String selectedText = textArea.getSelectedText();
+        String fullText = textArea.getText();
+        
+        // Check if all text is selected (allowing for potential whitespace differences)
+        if (selectedText.trim().equals(fullText.trim()) && !selectedText.isEmpty()) {
+            // All text is selected
+            if (!textSelected) {
+                textSelected = true;
+                
+                // Update status label
+                if (statusLabel != null) {
+                    statusLabel.setText("Great job! You've successfully used Ctrl+A to select all text!");
+                }
+                
+                // Complete the level if not already completed
+                if (!levelCompleted) {
+                    levelCompleted = true;
+                    System.out.println("Level completed!");
+                    unlockNextLevel();
+                    showCompletionPopup();
+                }
+            }
+        }
+    }
+
+    /**
      * Shows the hint popup with level-specific information and images
      */
     private void showHintPopup() {
@@ -130,7 +183,7 @@ public class Level1 {
         }
 
         // Load hint images from the resources directory
-        List<Image> hintImages = loadHintImages("Level1");
+        List<Image> hintImages = loadHintImages("Level6");
 
         // If we have images, add them to the container
         if (!hintImages.isEmpty()) {
@@ -220,23 +273,6 @@ public class Level1 {
         return images;
     }
 
-    private void checkClipboardAndComplete() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            System.out.println("Clipboard content: " + clipboardText);
-
-            if (clipboardText.contains("Level 1 Complete")) {
-                if (!levelCompleted) {
-                    levelCompleted = true;
-                    System.out.println("Level completed!");
-                    unlockNextLevel();
-                    showCompletionPopup();
-                }
-            }
-        }
-    }
-
     /**
      * Shows a styled completion popup similar to the locked level popup
      */
@@ -257,15 +293,15 @@ public class Level1 {
         popupContent.setStyle("-fx-border-color: #4CAF50;");
 
         // Add a completion title with trophy emoji
-        Text completedText = new Text("🏆 Level 1 Complete!");
+        Text completedText = new Text("🏆 Level 6 Complete!");
         completedText.getStyleClass().add("game-popup-title");
 
         // Add a congratulatory message
-        Text congratsText = new Text("Great job mastering Ctrl+C!");
+        Text congratsText = new Text("Great job mastering Ctrl+A (Select All)!");
         congratsText.getStyleClass().add("game-popup-subtext");
 
         // Add navigation buttons in a horizontal layout
-        javafx.scene.layout.HBox buttonBox = new javafx.scene.layout.HBox(10);
+        HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER);
 
         // Home button
@@ -305,9 +341,9 @@ public class Level1 {
     }
 
     private void unlockNextLevel() {
-        // Mark level 1 as completed and unlock level 2
-        LevelProgressTracker.getInstance().completeLevel(1);
-        System.out.println("Level 1 completed and Level 2 unlocked!");
+        // Mark level 6 as completed and unlock level 7
+        LevelProgressTracker.getInstance().completeLevel(6);
+        System.out.println("Level 6 completed and Level 7 unlocked!");
     }
 
     private void goToHomePage() {
@@ -338,7 +374,7 @@ public class Level1 {
 
     private void goToNextLevel() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level2.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Levels/Level7.fxml"));
             Parent root = loader.load();
 
             // Get the current stage
@@ -355,12 +391,12 @@ public class Level1 {
 
             // Set the scene to the existing stage
             stage.setScene(scene);
-            stage.setTitle("Level 2");
+            stage.setTitle("Level 7");
         } catch (IOException e) {
-            System.err.println("Failed to load Level 2: " + e.getMessage());
+            System.err.println("Failed to load Level 7: " + e.getMessage());
             e.printStackTrace();
 
-            // If Level 2 doesn't exist yet, go back to home
+            // If Level 7 doesn't exist yet, go back to home
             try {
                 goToHomePage();
             } catch (Exception ex) {

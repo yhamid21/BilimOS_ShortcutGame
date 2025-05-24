@@ -39,6 +39,17 @@ public class LevelProgressTracker {
         }
     }
     
+    /**
+     * Unlocks all levels in the game for testing purposes
+     */
+    public void unlockAllLevels() {
+        for (int i = 1; i <= totalLevels; i++) {
+            // Set all levels to unlocked (1) status
+            levelStatus.put(i, 1);
+        }
+        System.out.println("All levels unlocked for testing");
+    }
+    
     public int getLevelStatus(int levelNumber) {
         return levelStatus.getOrDefault(levelNumber, 0);
     }
