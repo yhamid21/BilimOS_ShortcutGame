@@ -48,7 +48,7 @@ public class Level1 {
         textArea.setText("Level 1 Complete!");
         textArea.selectAll();
 
-//        LevelProgressTracker.getInstance().unlockAllLevels();
+        LevelProgressTracker.getInstance().unlockAllLevels();
         if (congratsPopup != null) {
             congratsPopup.setVisible(false);
         }
